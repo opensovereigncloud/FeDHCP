@@ -9,12 +9,17 @@ stages:
   - build
   - release
 
-workflow:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
-
-.docker-login: &docker-login
-  - docker login -u="${OSC_LOGIN}" -p="${OSC_PASSWORD}" "${OSC_HOST}"
+.defaults_template: &defaults_definition
+  image: ${MTR_GITLAB_HOST}/osc/gardener/osc-builder:v4.0.0
+  tags:
+    - docker
+    - pes
+    - osc
+  before_script:
+    - mkdir -p ${GOPATH}/src/${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git
+    - rm -rf ${GOPATH}/src/${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git
+    - mv $CI_PROJECT_DIR ${GOPATH}/src/${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git
+    - cd ${GOPATH}/src/${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git
 
 go-lint:
   stage: lint
@@ -36,16 +41,35 @@ build:
   script:
     - make build
 
-release:
+build-dev:
+  <<: *defaults_definition
   stage: release
-  rules:
-    - if: $CI_COMMIT_TAG =~ /^v[0-9]+\..*/
-  variables:
-    IMG: "${OSC_HOST}/osc/upstream/ironcore-dev/fedhcp:${CI_COMMIT_TAG}"
-  dependencies:
-    - build
-  before_script:
-    - *docker-login
   script:
-    - docker build -t "${IMG}" -f Dockerfile .
-    - docker push "${IMG}"
+    - hack/container-build.sh osc/upstream/ironcore-dev dev
+  only:
+    - osc/main
+
+build-branches:
+  <<: *defaults_definition
+  stage: release
+  script:
+    - chmod +x hack/container-build.sh
+    - hack/container-build.sh osc/upstream/ironcore-dev ${CI_COMMIT_REF_NAME}
+  only:
+    - /feature-.*$/
+    - /bugfix-.*$/
+    - /release-fix-.*$/
+  except:
+    - tags
+
+build-tag:
+  <<: *defaults_definition
+  stage: release
+  script:
+    - export LDFLAGS="-s -w"
+    - hack/container-build.sh osc/upstream/ironcore-dev ${CI_COMMIT_TAG}
+  only:
+    # must match 0.0.0...
+    - /^v(\d+)\.(\d+)\.(\*|\d+).*$/
+  except:
+    - branches
