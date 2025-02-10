@@ -20,6 +20,7 @@ stages:
     - rm -rf ${GOPATH}/src/${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git
     - mv $CI_PROJECT_DIR ${GOPATH}/src/${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git
     - cd ${GOPATH}/src/${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git
+    - chmod +x hack/container-build.sh
 
 go-lint:
   stage: lint
@@ -53,7 +54,6 @@ build-branches:
   <<: *defaults_definition
   stage: release
   script:
-    - chmod +x hack/container-build.sh
     - hack/container-build.sh osc/upstream/ironcore-dev ${CI_COMMIT_REF_NAME}
   only:
     - /feature-.*$/
