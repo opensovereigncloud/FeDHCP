@@ -8,6 +8,7 @@ stages:
   - test
   - build
   - release
+  - post-processing
 
 .defaults_template: &defaults_definition
   image: ${MTR_GITLAB_HOST}/osc/gardener/osc-builder:v4.0.0
@@ -73,3 +74,10 @@ build-tag:
     - /^v(\d+)\.(\d+)\.(\*|\d+).*$/
   except:
     - branches
+
+include:
+  - component: 'gitlab.devops.telekom.de/cas-devs/osc/common/pipeline-community/components/mtr/configure-repo@stable'
+    inputs:
+      image-list-type: 'none'
+      version: 'stable'
+      stage: 'post-processing'
