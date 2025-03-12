@@ -1,0 +1,10 @@
+team: iaas
+assignees:
+  - "k.kumar"
+cveLabels:
+  - "type::3-cve"
+  - "stream::infra-development"
+  - "why::Security"
+dueDays: 13
+cve:
+  - repository: osc/upstream/ironcore-dev/fedhcp
