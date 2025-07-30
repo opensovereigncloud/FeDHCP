@@ -12,7 +12,7 @@ stages:
   - post-processing
 
 .defaults_template: &defaults_definition
-  image: ${MTR_GITLAB_HOST}/osc/gardener/osc-builder:v4.0.6
+  image: ${MTR_GITLAB_HOST}/osc/gardener/osc-builder:v5.0.1
   tags:
     - docker
     - pes
